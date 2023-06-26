@@ -1,0 +1,60 @@
+import re
+import string
+from string import punctuation
+import emoji
+from nltk.stem import WordNetLemmatizer
+from bs4 import BeautifulSoup
+from collections import Counter
+from nltk.corpus import wordnet
+from nltk.corpus import stopwords
+from nltk import SnowballStemmer, PorterStemmer, LancasterStemmer
+from sklearn.utils import resample
+from nltk.stem import WordNetLemmatizer
+#from nltk.tokenize import TweetTokenizer 
+from nltk.tokenize import TreebankWordTokenizer
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import CountVectorizer
+
+def text_processing(text):
+    text = re.sub(r"http\S+|www\S+|https\S+", "", text) # Remove URLs
+    text = emoji.demojize(text, delimiters=("", "")) # Emoji to Text 
+    text = re.sub("rt[\s]", "", text) # Remove retweet 'rt'
+    text = re.sub('[^a-z]', ' ',text) # Removing non-alphabets
+    
+    hashtags = re.findall(r"#\w+", text) # Extract hashtags
+    extracted_hashtags = [tag.strip("#") for tag in hashtags]
+    text = re.sub(r"#\w+", '',text)
+    
+    mentions = re.findall(r"@\w+", text) # Extract mentions using regex pattern matching
+    extracted_mentions = [tag.strip("@") for tag in mentions]
+    text = re.sub(r"@\w+", '',text)
+    
+    text = nltk.word_tokenize(text.lower())
+    y = []
+    for i in text:
+        if i.isalnum():
+            y.append(i)
+
+    text = y[:]
+    y.clear()
+    
+    lemmatizer = WordNetLemmatizer()
+    for i in text:
+        if i not in stopwords.words('english') and i not in string.punctuation:
+            lem = lemmatizer.lemmatize(i)
+            y.append(lem)
+            
+    return " ".join(y)
+
+def remove_urls(text):   
+    url_pattern = r'https?://(?:[-\w.]|(?:%[\da-fA-F]{2}))+' # Regular expression pattern to match URLs
+    text_without_urls = re.sub(url_pattern, '', text) # Remove URLs from the text
+
+    return text_without_urls
+
+def cleaning(text):   
+    text = emoji.demojize(text, delimiters=("", "")) # Emoji to Text
+    text = re.sub("rt[\s]", "", text) # Remove retweet 'rt'
+
+    return text
