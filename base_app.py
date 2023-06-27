@@ -114,6 +114,16 @@ def convert_sentiment(num):
     
     return sentiment.get(num, 'no sentiment')
 
+def explain_sentiment(num):
+    sentiment = {
+        0: 'Neutral sentiment refers to a lack of strong positive or negative feelings or opinions towards a particular subject. It indicates a state of indifference, objectivity, or a balanced perspective. When analyzing text or data for sentiment analysis, neutral sentiment is often considered as the absence of any explicit positive or negative sentiment.<br><br>Neutral sentiment can occur for various reasons:<br>  1. Lack of emotional attachment: Some topics or situations may not evoke strong emotions in individuals, leading to a neutral stance. For example, discussing mundane or neutral subjects like weather, facts, or simple descriptions may elicit a neutral sentiment.<br>  2. Objective statements: Neutral sentiment can arise when conveying factual information or stating something in an unbiased, impartial manner. Objective statements aim to present information without expressing personal opinions or emotions.<br>  3. Ambiguity or uncertainty: In situations where the information is ambiguous, vague, or unclear, people may adopt a neutral sentiment until further clarification is obtained. This allows individuals to suspend judgment and avoid making strong positive or negative assumptions.<br>  4. Mixed opinions or conflicting emotions: Sometimes, individuals may have a combination of positive and negative feelings towards a subject, resulting in an overall neutral sentiment. This can occur when considering various aspects of a topic and finding both favorable and unfavorable elements.',
+        1: 'Positive sentiment towards believing in climate change refers to a favorable or optimistic attitude regarding the acceptance and acknowledgment of the reality and significance of climate change. It reflects a positive perception and acceptance of scientific evidence indicating that human activities contribute to global warming and environmental degradation.<br><br>Here are some key points to understand positive sentiment towards believing in climate change:<br><br>  1. Awareness and understanding: Positive sentiment towards climate change involves being aware of the issue and having a solid understanding of the scientific consensus that supports the existence and impact of climate change. It reflects a recognition of the evidence and data collected by scientists studying the Earth\'s climate system.<br>  2. Trust in scientific research: Positive sentiment towards believing in climate change often stems from placing trust in the scientific community and its expertise. It involves acknowledging the extensive research, studies, and models that have been conducted to understand the causes and consequences of climate change.<br>  3. Concern for the environment: Positive sentiment towards climate change is often driven by a genuine concern for the environment and a desire to mitigate its negative impacts. It reflects a belief that taking action to address climate change is necessary to protect ecosystems, biodiversity, and the well-being of current and future generations.<br>  4. Support for mitigation and adaptation measures: Positive sentiment towards believing in climate change is accompanied by support for measures aimed at mitigating and adapting to its effects. This can include endorsing policies and actions that reduce greenhouse gas emissions, promote renewable energy, conserve resources, and foster sustainable practices.<br>  5. Collaboration and collective action: Positive sentiment towards climate change often involves recognizing the need for collective action and international cooperation to address the global challenge. It reflects a belief that individuals, communities, governments, and businesses all have a role to play in finding solutions and implementing sustainable practices.',
+        -1: 'Negative sentiment towards believing in climate change refers to a skeptical or pessimistic attitude regarding the acceptance and acknowledgment of the reality and significance of climate change. It reflects a lack of belief or doubt in the scientific consensus that human activities contribute to global warming and environmental degradation.<br><br>Here are some key points to understand negative sentiment towards believing in climate change:<br><br>  1. Skepticism and denial: Negative sentiment towards climate change often arises from skepticism or denial of the scientific evidence supporting the existence and impact of climate change. Skeptics may question the accuracy of climate models, dispute the reliability of climate data, or challenge the attribution of observed changes to human activities.<br>  2. Alternative explanations: Negative sentiment can stem from the belief in alternative explanations for observed climate patterns and variability. Some individuals attribute climate change to natural processes or argue that the Earth\'s climate has always undergone fluctuations and that human activities play a negligible role.<br>  3. Political or ideological influences: Negative sentiment towards believing in climate change can be influenced by political or ideological factors. Some individuals align their opinions based on political affiliations, economic interests, or a skepticism towards government intervention or regulations associated with climate change mitigation.<br>  4. Misinformation and conspiracy theories: Negative sentiment may be reinforced by the spread of misinformation or conspiracy theories regarding climate change. Misinformation can create confusion, sow doubt, or present misleading information that challenges the scientific consensus, leading to a negative sentiment among certain individuals.<br>  5. Perception of economic implications: Negative sentiment can be driven by concerns about the economic impacts of addressing climate change. Some individuals may fear that adopting measures to mitigate climate change will have adverse effects on industries, jobs, or economic growth.',
+        2: ''
+    }
+    
+    return sentiment.get(num, 'no sentiment')
+
 # Vectorizer
 news_vectorizer = open("resources/vectorizer.pkl","rb")
 tweet_cv = joblib.load(news_vectorizer) # loading your vectorizer from the pkl file
@@ -392,7 +402,7 @@ def main():
             # Model selector. Model to be used for sentiment prediction
             classifier_opt = st.selectbox(
                 'Please select a model:',
-                ('Logistic Regression', 'Support Vector', 'Naive Bayes', 'Nearest Neighbours'))
+                ('Stocastic Gradient Descent', 'Logistic Regression', 'Support Vector', 'Naive Bayes', 'Nearest Neighbours' ))
             bulk_sentiment = st.checkbox('Bulk Sentiment:', value=False, label_visibility="visible")
             
             col3, col4, col5 = st.columns([0.1, 0.8, 0.1])
@@ -418,11 +428,13 @@ def main():
                     if classifier_opt == 'Logistic Regression':
                         predictor = joblib.load(open(os.path.join("resources/Logistic_Regression_model.pkl"),"rb"))
                     if classifier_opt == 'Support Vector':
-                        predictor = joblib.load(open(os.path.join("resources/Nearest_Neighbors_model.pkl"),"rb"))
+                        predictor = joblib.load(open(os.path.join("resources/Linear_SVM_model.pkl"),"rb"))
                     if classifier_opt == 'Naive Bayes':
                         predictor = joblib.load(open(os.path.join("resources/Naive_Bayes_model.pkl"),"rb"))
                     if classifier_opt == 'Nearest Neighbours':
                         predictor = joblib.load(open(os.path.join("resources/Nearest_Neighbors_model.pkl"),"rb"))
+                    if classifier_opt == 'Stocastic Gradient Descent':
+                        predictor = joblib.load(open(os.path.join("resources/Stocastic_Gradient_Descent_model.pkl"),"rb"))
 
                     prediction = predictor.predict(vect_text)
 
@@ -430,35 +442,48 @@ def main():
                         sentiment_message = 'The message appears to be a News item!'
                     else:
                         sentiment_message = 'The message conveys {} sentiment!'.format(convert_sentiment(prediction[0]))
+                        
+                st.markdown("<div style='background-color: rgba(246, 246, 246, 0.4); box-shadow: 2px 2px; padding: 20px; margin: 0px 0px 25px 0px; border-radius: 10px; text-align:justify'><p>{}<br><br>{}</p></div>".format(sentiment_message, explain_sentiment(prediction[0])), unsafe_allow_html=True)
                     
             else:
+                n = 5
                 # Creating a text box for user input
-                tweet_data = pd.read_csv(st.file_uploader('Upload CSV File', type=['csv'], accept_multiple_files=False, label_visibility="visible"))
+                uploaded_file = st.file_uploader('Upload CSV File', type=['csv'], accept_multiple_files=False, label_visibility="visible")
+                if uploaded_file is not None:
+                    tweet_data = pd.read_csv(uploaded_file)
 
                 if st.button("Classify"):
-                    clean_text = raw['message'].apply(text_processing)
+                    clean_text = tweet_data['message'].apply(text_processing)
                     clean_text = clean_text.apply(remove_urls)
                     clean_text = clean_text.apply(cleaning)
                     
+                    vect_text = tweet_cv.transform(clean_text[:n]).toarray()
                     
-                    vect_text = tweet_cv.transform(clean_text['message']).toarray()
+                    
 
-#                     # Load your .pkl file with the model of your choice + make predictions
-#                     # Try loading in multiple models to give the user a choice
-#                     if classifier_opt == 'Logistic Regression':
-#                         predictor = joblib.load(open(os.path.join("resources/Logistic_Regression_model.pkl"),"rb"))
-#                     if classifier_opt == 'Support Vector':
-#                         predictor = joblib.load(open(os.path.join("resources/Nearest_Neighbors_model.pkl"),"rb"))
-#                     if classifier_opt == 'Naive Bayes':
-#                         predictor = joblib.load(open(os.path.join("resources/Naive_Bayes_model.pkl"),"rb"))
-#                     if classifier_opt == 'Nearest Neighbours':
-#                         predictor = joblib.load(open(os.path.join("resources/Nearest_Neighbors_model.pkl"),"rb"))
+                    # Load your .pkl file with the model of your choice + make predictions
+                    # Try loading in multiple models to give the user a choice
+                    if classifier_opt == 'Logistic Regression':
+                        predictor = joblib.load(open(os.path.join("resources/Logistic_Regression_model.pkl"),"rb"))
+                    if classifier_opt == 'Support Vector':
+                        predictor = joblib.load(open(os.path.join("resources/Nearest_Neighbors_model.pkl"),"rb"))
+                    if classifier_opt == 'Naive Bayes':
+                        predictor = joblib.load(open(os.path.join("resources/Naive_Bayes_model.pkl"),"rb"))
+                    if classifier_opt == 'Nearest Neighbours':
+                        predictor = joblib.load(open(os.path.join("resources/Nearest_Neighbors_model.pkl"),"rb"))
+                    if classifier_opt == 'Stocastic Gradient Descent':
+                        predictor = joblib.load(open(os.path.join("resources/Stocastic_Gradient_Descent_model.pkl"),"rb"))
 
-#                     df_new = pd.DataFrame(kegg_predictions, columns = ['sentiment'])
-#                     test_new = pd.DataFrame({"tweetid": df_test.copy()['tweetid'].reset_index(drop = True)})
-#                     sub_file = test_new.join(df_new)
-#                     sub_file['sentiment'] = df_new.values
-#                     st.write(sub_file)
+                    prediction = predictor.predict(vect_text)
+                    
+#                     st.write(prediction)
+                    
+                    df_sentiment = pd.DataFrame(prediction, columns = ['sentiment'])
+                    test_new = pd.DataFrame({"tweetid": tweet_data.copy()['tweetid'][:n].reset_index(drop = True)})
+                    sub_file = test_new.join(df_sentiment)
+                    sub_file['sentiment'] = df_sentiment.values
+                    sub_file['message'] = tweet_data['message'][:n]
+                    st.write(sub_file)
 
         
     # Building out the about us page
