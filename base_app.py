@@ -380,13 +380,17 @@ def main():
         st.markdown("<div style='background-color: rgba(246, 246, 246, 0.4); box-shadow: 2px 2px; padding: 20px; margin: 0px 0px 25px 0px; border-radius: 10px; text-align:justify'><p><h6>Data Analyser:</h6>Welcome to our data analyzer! In the realm of data-driven decision making, understanding and analyzing datasets is paramount. With our data analyzer, we aim to simplify the process of exploring and gaining insights from your data. Simply upload your CSV file contianing tweet messages and sentiments and let the application do the work.</p></div>", unsafe_allow_html=True)
         
         
-        analysis_data = st.file_uploader('Upload CSV File', type=['csv'], accept_multiple_files=False, label_visibility="visible")
-        if st.button("Classify"):
-            st.markdown('Analysis begin')
-            
-        st.subheader("Raw Twitter data and label")
-        if st.checkbox('Show raw data'): # data is hidden if box is unchecked
-            st.write(raw[['sentiment', 'message']]) # will write the df to the page
+        uploaded_sentiment = st.file_uploader('Upload CSV File', type=['csv'], accept_multiple_files=False, label_visibility="visible")
+        
+        if uploaded_sentiment is not None:
+                    analysis_data = pd.read_csv(uploaded_sentiment)
+                    
+                    if st.checkbox('Show raw data'): # data is hidden if box is unchecked
+                        st.write(analysis_data) # will write the df to the page
+
+                    if st.button("Analyse"):
+                        st.markdown('Analysis begin')
+        
 
         
 
@@ -395,6 +399,7 @@ def main():
         st.markdown("<div style='background-color: rgba(246, 246, 246, 0.4); box-shadow: 2px 2px; padding: 20px; margin: 0px 0px 25px 0px; border-radius: 10px; text-align:justify'><p><h6>Sentiment Predictor:</h6>Welcome to our advanced sentiment predictor! This powerful tool is designed to determine the sentiment of any given text string and provide valuable insights into the emotional tone and polarity of the content.</p></div>", unsafe_allow_html=True)
         
         sentiment_message = "Please submit a message before a sentiment can be determined..."
+        predictor = None
         
         col1, col2 = st.columns([0.3, 0.7])
 
@@ -435,22 +440,23 @@ def main():
                         predictor = joblib.load(open(os.path.join("resources/Nearest_Neighbors_model.pkl"),"rb"))
                     if classifier_opt == 'Stocastic Gradient Descent':
                         predictor = joblib.load(open(os.path.join("resources/Stocastic_Gradient_Descent_model.pkl"),"rb"))
+                    
+                    if predictor is not None:
+                        prediction = predictor.predict(vect_text)
 
-                    prediction = predictor.predict(vect_text)
-
-                    if prediction == 2:
-                        sentiment_message = 'The message appears to be a News item!'
-                    else:
-                        sentiment_message = 'The message conveys {} sentiment!'.format(convert_sentiment(prediction[0]))
+                        if prediction == 2:
+                            sentiment_message = 'The message appears to be a News item!'
+                        else:
+                            sentiment_message = 'The message conveys {} sentiment!'.format(convert_sentiment(prediction[0]))
                         
-                st.markdown("<div style='background-color: rgba(246, 246, 246, 0.4); box-shadow: 2px 2px; padding: 20px; margin: 0px 0px 25px 0px; border-radius: 10px; text-align:justify'><p>{}<br><br>{}</p></div>".format(sentiment_message, explain_sentiment(prediction[0])), unsafe_allow_html=True)
+                        st.markdown("<div style='background-color: rgba(246, 246, 246, 0.4); box-shadow: 2px 2px; padding: 20px; margin: 0px 0px 25px 0px; border-radius: 10px; text-align:justify'><p>{}<br><br>{}</p></div>".format(sentiment_message, explain_sentiment(prediction[0])), unsafe_allow_html=True)
                     
             else:
-                n = 5
                 # Creating a text box for user input
                 uploaded_file = st.file_uploader('Upload CSV File', type=['csv'], accept_multiple_files=False, label_visibility="visible")
                 if uploaded_file is not None:
                     tweet_data = pd.read_csv(uploaded_file)
+                    n = 1000
 
                 if st.button("Classify"):
                     clean_text = tweet_data['message'].apply(text_processing)
@@ -473,17 +479,16 @@ def main():
                         predictor = joblib.load(open(os.path.join("resources/Nearest_Neighbors_model.pkl"),"rb"))
                     if classifier_opt == 'Stocastic Gradient Descent':
                         predictor = joblib.load(open(os.path.join("resources/Stocastic_Gradient_Descent_model.pkl"),"rb"))
+                        
+                    if predictor is not None:
+                        prediction = predictor.predict(vect_text)
 
-                    prediction = predictor.predict(vect_text)
-                    
-#                     st.write(prediction)
-                    
-                    df_sentiment = pd.DataFrame(prediction, columns = ['sentiment'])
-                    test_new = pd.DataFrame({"tweetid": tweet_data.copy()['tweetid'][:n].reset_index(drop = True)})
-                    sub_file = test_new.join(df_sentiment)
-                    sub_file['sentiment'] = df_sentiment.values
-                    sub_file['message'] = tweet_data['message'][:n]
-                    st.write(sub_file)
+                        df_sentiment = pd.DataFrame(prediction, columns = ['sentiment'])
+                        test_new = pd.DataFrame({"tweetid": tweet_data.copy()['tweetid'][:n].reset_index(drop = True)})
+                        sub_file = test_new.join(df_sentiment)
+                        sub_file['sentiment'] = df_sentiment.values
+                        sub_file['message'] = tweet_data['message'][:n]
+                        st.write(sub_file)
 
         
     # Building out the about us page
