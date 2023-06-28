@@ -56,11 +56,15 @@ from sklearn.feature_extraction.text import CountVectorizer
 
 #Analysis dependancies
 import matplotlib.pyplot as plt
+import seaborn as sns
 
+
+#contact us office coordinates
 df_office_loc = pd.DataFrame(
     [[-33.924487, 18.417017]],
     columns=['lat', 'lon'])
 
+#Preprocessing
 def text_processing(text):
     text = re.sub(r"http\S+|www\S+|https\S+", "", text) # Remove URLs
     text = emoji.demojize(text, delimiters=("", "")) # Emoji to Text 
@@ -92,18 +96,21 @@ def text_processing(text):
             
     return " ".join(y)
 
+#Preprocessing
 def remove_urls(text):   
     url_pattern = r'https?://(?:[-\w.]|(?:%[\da-fA-F]{2}))+' # Regular expression pattern to match URLs
     text_without_urls = re.sub(url_pattern, '', text) # Remove URLs from the text
 
     return text_without_urls
 
+#Preprocessing
 def cleaning(text):   
     text = emoji.demojize(text, delimiters=("", "")) # Emoji to Text
     text = re.sub("rt[\s]", "", text) # Remove retweet 'rt'
 
     return text
 
+#Numeric sentiment to text sentiment
 def convert_sentiment(num):
     sentiment = {
         0: 'neutral',
@@ -114,6 +121,7 @@ def convert_sentiment(num):
     
     return sentiment.get(num, 'no sentiment')
 
+#Sentiment options explanation
 def explain_sentiment(num):
     sentiment = {
         0: 'Neutral sentiment refers to a lack of strong positive or negative feelings or opinions towards a particular subject. It indicates a state of indifference, objectivity, or a balanced perspective. When analyzing text or data for sentiment analysis, neutral sentiment is often considered as the absence of any explicit positive or negative sentiment.<br><br>Neutral sentiment can occur for various reasons:<br>  1. Lack of emotional attachment: Some topics or situations may not evoke strong emotions in individuals, leading to a neutral stance. For example, discussing mundane or neutral subjects like weather, facts, or simple descriptions may elicit a neutral sentiment.<br>  2. Objective statements: Neutral sentiment can arise when conveying factual information or stating something in an unbiased, impartial manner. Objective statements aim to present information without expressing personal opinions or emotions.<br>  3. Ambiguity or uncertainty: In situations where the information is ambiguous, vague, or unclear, people may adopt a neutral sentiment until further clarification is obtained. This allows individuals to suspend judgment and avoid making strong positive or negative assumptions.<br>  4. Mixed opinions or conflicting emotions: Sometimes, individuals may have a combination of positive and negative feelings towards a subject, resulting in an overall neutral sentiment. This can occur when considering various aspects of a topic and finding both favorable and unfavorable elements.',
@@ -124,6 +132,16 @@ def explain_sentiment(num):
     
     return sentiment.get(num, 'no sentiment')
 
+#Imbalance explanation
+def imbalance_message(num):
+    if abs(num) > 1.0:
+        response = 'the class distribution is significantly skew, indicating class imbalance is present in the dataset. If you are using this dataset to train a classifier please consider implementing resampling methods to reduce the effects of class imbalance.'
+    elif abs(num) > 0.5:
+        response = 'the class distribution is moderately skew, indicating potential for class imbalance in the dataset. If you are using this dataset to train a classifier please be aware of the class distribution, however implementing resampling methods to reduce the effects of class imbalance maynot be necessary.'
+    else:
+        response = 'the class distribution is approcimatly symetric, indicating a well-balanced representation of classes. If you are using this dataset to train a classifier, it is not necessary to implement resampling methods as the class distribution already exhibits a fair distribution of instances across different classes.'
+    return response
+
 # Vectorizer
 news_vectorizer = open("resources/vectorizer.pkl","rb")
 tweet_cv = joblib.load(news_vectorizer) # loading your vectorizer from the pkl file
@@ -131,25 +149,47 @@ tweet_cv = joblib.load(news_vectorizer) # loading your vectorizer from the pkl f
 # Load your raw data
 raw = pd.read_csv("resources/train.csv")
 
+#tab css
 font_css = """
             <style>
+            div[data-baseweb="tab-list"] {
+                background:rgba(246, 246, 246, 0.4);
+                padding: 0 5px 0 5px;
+                border-radius: 5px;
+            }
+            
             button[data-baseweb="tab"] > div[data-testid="stMarkdownContainer"] > p {
-              font-size: 24px;
+              font-size: 18px;
             }
             
-            #tabs-bui2-tab-0 {
-              background: transparent
+            button[data-baseweb="tab"] {
+                background: transparent
             }
             
-            #tabs-bui2-tab-1 {
-              background: transparent
+            button[data-baseweb="tab"]:hover {
+                background: rgba(230, 230, 230, 0.4);
+                color: rgb(255, 255, 255)
             }
             
-            #tabs-bui2-tab-2 {
-              background: transparent
+            div[data-baseweb="tab-highlight"] {
+                background: rgba(230, 230, 230, 0.4);
+                color: rgb(255, 255, 255)
             }
+            
+            button[data-baseweb="tab"]:active {
+                background: rgba(230, 230, 230, 0.4);
+                color: rgb(255, 255, 255)
+            }
+            
+            div[data-testid="stExpander"] {
+                background:rgba(246, 246, 246, 0.4);
+                border-radius: 5px;
+                box-shadow: 2px 2px;
+            }
+
             </style>
             """
+st.markdown(font_css, unsafe_allow_html=True)
 
 # The main function where we will build the actual app
 def main():
@@ -202,20 +242,7 @@ def main():
         "nav-link": {"margin":"0px", "--hover-color": "#bebebe"},
         "nav-link-selected": {"background-color": "#007fe0","opacity":0.8}
     }
-    
-#     #Change navigation menu when navigation bar item changes
-#     if st.session_state.get('menu_1', False):
-#         st.session_state['menu_option'] = menu_options.index(st.session_state.get('menu_1',1))
-#         manual_select = st.session_state['menu_option']
-#     else:
-#         manual_select = None
         
-#     if st.session_state.get('menu_2', False):
-#         st.session_state['menu_option'] = menu_options.index(st.session_state.get('menu_2',1))
-#         manual_select = st.session_state['menu_option']
-#     else:
-#         manual_select = None
-    
     #Sidebar definition and sidebar contents
     with st.sidebar:
         st.image("logos/EcoPulse_Logo_2-removebg.png", width=300) #EcoPulse logo as title   
@@ -226,10 +253,8 @@ def main():
     #Define app content common to all pages
     #EcoPulse logo as title
     st.image("logos/EcoPulse_Logo_2-removebg.png")
-        
-#     #Define sidebar menu import from streamlit_option_menu
-#     selection = option_menu(None, menu_options, icons=menu_icons, menu_icon="cast", default_index=0, orientation="horizontal", styles=nav_bar_style,  manual_select=manual_select, key='menu_2')
     
+    #Page heading
     st.markdown("<div style='background-color: rgba(90, 90, 90, 0.4); box-shadow: 2px 2px; padding: 20px; margin: 0px 0px 25px 0px; border-radius: 10px'; text-align: center><h5 style='padding: 0; color: rgba(255, 255, 255, 1)'>{}</h5><span class='bi-house-fill'></span></div>".format(selection), unsafe_allow_html=True)
 
     # Building out the "Home" page
@@ -238,11 +263,11 @@ def main():
         st.markdown("<div style='background-color: rgba(246, 246, 246, 0.4); box-shadow: 2px 2px; padding: 20px; margin: 0px 0px 25px 0px; border-radius: 10px'; text-align:justify><p>EcoPulse is a revolutionary application designed to understand the sentiments surrounding climate change through the analysis of tweet data. With our cutting-edge technology, we provide useful insights into the public's perception of this critical global issue.</p></div>", unsafe_allow_html=True)
         
         with st.expander("Key Features"):
-            st.subheader("Sentiment Analysis:")
+            st.subheader("Sentiment Prediction:")
             st.markdown("EcoPulse utilizes advanced natural language processing algorithms to analyze tweets related to climate change. It accurately detects sentiments, including positive, negative, and neutral tones, allowing you to gauge the overall sentiment trends.")
             st.divider()
-            st.subheader("Visualization and Reports:")
-            st.markdown("EcoPulse transforms complex sentiment data into clear and visually appealing charts and reports. Our app presents sentiment trends, distributions, and popular keywords associated with climate change. These visualizations empower you to comprehend sentiment patterns at a glance and make data-driven decisions effortlessly.")
+            st.subheader("Data Analysis and Visualization:")
+            st.markdown("EcoPulse transforms complex sentiment data into clear and visually appealing charts. Our app presents sentiment trends, distributions, and popular keywords associated with climate change. These visualizations empower you to comprehend sentiment patterns at a glance and make data-driven decisions effortlessly.")
 
         st.subheader("Latest News:")
         components.html(
@@ -383,15 +408,171 @@ def main():
         uploaded_sentiment = st.file_uploader('Upload CSV File', type=['csv'], accept_multiple_files=False, label_visibility="visible")
         
         if uploaded_sentiment is not None:
-                    analysis_data = pd.read_csv(uploaded_sentiment)
+            analysis_data = pd.read_csv(uploaded_sentiment)
+
+            analysis_data['num_words'] = analysis_data['message'].apply(lambda x:len(nltk.word_tokenize(x)))
+            analysis_data['num_sentences'] = analysis_data['message'].apply(lambda x:len(nltk.sent_tokenize(x)))
+                
+            sentiment_dict = {
+                'positive': 1,
+                'negative': -1,
+                'neutral': 0,
+                'news': 2
+            }
+            
+            st.markdown("<div style='background-color: rgba(90, 90, 90, 0.4); box-shadow: 2px 2px; padding: 20px; margin: 0px 0px 25px 0px; border-radius: 10px'; text-align: center><h5 style='padding: 0; color: rgba(255, 255, 255, 1)'>Analysis Options</h5><span class='bi-house-fill'></span></div>", unsafe_allow_html=True)
+
+            tab4, tab5, tab6, tab7 = st.tabs(["Pre-processing","Class Imbalance", "Word Analysis", "Sentence Analysis"])
+
+            with tab4:
+                col12, col13 = st.columns([0.3, 0.7])
+
+                with col12:
+                    genre = st.radio(
+                        "Select pre-processing option:",
+                        ('Data', 'Null Value', 'Duplicate'))
+
+                    if st.button('Remove null values'):
+                        analysis_data.dropna(inplace=True)
+
+                    if st.button('Remove duplicates'):
+                        analysis_data.drop_duplicates(keep='first', inplace=True)
+
+                with col13:
+                    if genre == 'Null Value':
+                        st.markdown("<div style='background-color: rgba(246, 246, 246, 0.4); box-shadow: 2px 2px; padding: 20px; margin: 0px 0px 25px 0px; border-radius: 10px; text-align:justify'><p>There are {} null value records in the dataset!</p></div>".format(analysis_data.isna().sum().sum()), unsafe_allow_html=True)
+                        st.write(analysis_data[analysis_data.isna().any(axis=1)])
+                    elif genre == 'Duplicate':
+                        st.markdown("<div style='background-color: rgba(246, 246, 246, 0.4); box-shadow: 2px 2px; padding: 20px; margin: 0px 0px 25px 0px; border-radius: 10px; text-align:justify'><p>There are {} duplicate records in the dataset!</p></div>".format(analysis_data.duplicated().sum()), unsafe_allow_html=True)
+                        st.write(analysis_data[analysis_data.duplicated()])
+                    else:
+                        st.write(analysis_data)
+
+            with tab5:
+                st.markdown("<div style='background-color: rgba(246, 246, 246, 0.4); box-shadow: 2px 2px; padding: 20px; margin: 0px 0px 25px 0px; border-radius: 10px; text-align:justify'><p><h6>Class Imbalance Check:</h6>Class imbalance refers to a situation where the distribution of classes in a dataset is significantly skewed, meaning that there is an unequal number of instances for different classes. This can be a problem in machine learning tasks, especially in classification problems, as models tend to be biased towards the majority class and may not perform well on the minority class.</p></div>", unsafe_allow_html=True)
+
+                col10, col11 = st.columns(2)
+
+                with col10:
+                    class_count = analysis_data['sentiment'].value_counts()
+
+                    fig = plt.figure(figsize=(4,4))
+
+                    # Define the labels for each sentiment category
+                    labels = [convert_sentiment(x) for x in class_count.index.tolist()]
+
+                    # Visualize the data
+                    plt.pie(class_count, labels=labels, autopct='%0.2f%%')
+
+                    plt.title('Class Percentages Over Corpus')
+
+                    st.pyplot(fig)
+
+                with col11:
+                    class_count = analysis_data['sentiment'].value_counts()
+
+                    fig = plt.figure(figsize=(4,4))
+                    # Plot the bar graph
+                    ax = class_count.plot(kind='bar', color='red')
+
+                    # Add text annotations to each bar
+                    for i, count in enumerate(class_count):
+                        ax.annotate(str(count), xy=(i, count), ha='center', va='bottom')
+
+                    # Set labels and title
+                    plt.ylabel('Count')
+                    plt.xlabel('Sentiment')
+                    plt.title('Number of Sentiment Per Message')
+
+                    st.pyplot(fig)
+
+                class_skew = class_count.skew() 
+
+                st.markdown("<div style='background-color: rgba(246, 246, 246, 0.4); box-shadow: 2px 2px; padding: 20px; margin: 0px 0px 25px 0px; border-radius: 10px; text-align:justify'><p><h6>Data Analysis:</h6><b>A class skewness value of {} detected...</b><br><br>This implies that {}</p></div>".format(round(class_skew,3), imbalance_message(class_skew)), unsafe_allow_html=True)
+            
+            with tab6:
+                st.error("Data pre-processing may take a few minutes to execute...")
+                
+                analysis_data['transformed_text'] = analysis_data['message'].apply(text_processing)
+                analysis_data['transformed_text'] = analysis_data['message'].apply(remove_urls)
+                analysis_data['transformed_text'] = analysis_data['message'].apply(cleaning)
+                
+                st.markdown("<div style='background-color: rgba(246, 246, 246, 0.4); box-shadow: 2px 2px; padding: 20px; margin: 0px 0px 25px 0px; border-radius: 10px; text-align:justify'><p><h6>Corpus Composition, Word Analysis:</h6>This analysis provides valuable insights into the length and complexity of the text units within the corpus, shedding light on the characteristics of the language and the nature of the documents being studied.</p></div>", unsafe_allow_html=True)
+                word_list = []
+                
+                data_set_dict = {
+                    'positive': analysis_data[analysis_data['sentiment'] == 1],
+                    'negative': analysis_data[analysis_data['sentiment'] == -1],
+                    'neutral': analysis_data[analysis_data['sentiment'] == 0],
+                    'news': analysis_data[analysis_data['sentiment'] == 2]
+                }                    
                     
-                    if st.checkbox('Show raw data'): # data is hidden if box is unchecked
-                        st.write(analysis_data) # will write the df to the page
+                word_options = st.multiselect(
+                    'Select Sentiment Category:',
+                    ['positive', 'negative', 'neutral', 'news'], key='word_select')
+                
+                word_list = [data_set_dict[x]['num_words'] for x in word_options]
+                
+                if len(word_options) > 0:
+                    fig = plt.figure(figsize=(4,4))
+                    # Plot the histograms for each sentiment category
+                    plt.hist(word_list, bins=30)
+                    plt.xlabel('Count')  
+                    plt.ylabel('Number of Words')
+                    plt.title('Word Count per Observation')
+                    # Adjust spacing between subplots
+                    fig.tight_layout()
+                    st.pyplot(fig)
 
-                    if st.button("Analyse"):
-                        st.markdown('Analysis begin')
-        
-
+                st.markdown("<div style='background-color: rgba(246, 246, 246, 0.4); box-shadow: 2px 2px; padding: 20px; margin: 0px 0px 25px 0px; border-radius: 10px; text-align:justify'><p><h6>Word frequency analysis:</h6>Word frequency analysis is a fundamental technique in computational linguistics and natural language processing that involves determining the frequency of words in a given text or corpus. By counting the occurrence of each word, researchers can identify common and rare words, analyze language patterns, compare texts, and derive valuable insights into the structure and characteristics of the language being studied.<br><br>By selecting a sentiment, the data analyser will generate a word frequency plot, which displays the 10 most common words appearing in the corpus, for that sentiment.</p></div>", unsafe_allow_html=True)
+                
+                option_word_freq = st.selectbox(
+                    'Select Sentiment',
+                    ('positive', 'negative', 'neutral', 'news'))
+                
+                # Converting messages to List of Words
+                freq_list = analysis_data[analysis_data['sentiment'] == sentiment_dict[option_word_freq]]['transformed_text'].str.cat(sep= " ")
+                msg_word_list = freq_list.split()
+                
+                top_10words = pd.DataFrame(Counter(msg_word_list).most_common(10))
+                
+                fig = plt.figure(figsize=(4,4))
+                sns.barplot(x = top_10words[0], y = top_10words[1])
+                plt.xticks(rotation=90)
+                plt.xlabel('Words')  
+                plt.ylabel('Frequency')
+                plt.title('10 Most frequently used words for {} sentiment'.format(option_word_freq))
+                st.pyplot(fig)
+                
+            with tab7:
+                st.error("Data pre-processing may take a few minutes to execute...")
+                
+                st.markdown("<div style='background-color: rgba(246, 246, 246, 0.4); box-shadow: 2px 2px; padding: 20px; margin: 0px 0px 25px 0px; border-radius: 10px; text-align:justify'><p><h6>Corpus Composition, Senence Analysis:</h6>This analysis provides insights into the structure and length of the text units within the corpus, allowing researchers to understand how information is organized and conveyed.</p></div>", unsafe_allow_html=True)
+                sent_list = []
+                
+                data_set_dict = {
+                    'positive': analysis_data[analysis_data['sentiment'] == 1],
+                    'negative': analysis_data[analysis_data['sentiment'] == -1],
+                    'neutral': analysis_data[analysis_data['sentiment'] == 0],
+                    'news': analysis_data[analysis_data['sentiment'] == 2]
+                }                    
+                    
+                sent_options = st.multiselect(
+                    'Select Sentiment Category:',
+                    ['positive', 'negative', 'neutral', 'news'], key='sent_select')
+                
+                sent_list = [data_set_dict[x]['num_sentences'] for x in sent_options]
+                
+                if len(sent_options) > 0:
+                    fig = plt.figure(figsize=(4,4))
+                    # Plot the histograms for each sentiment category
+                    plt.hist(sent_list, bins=30)
+                    plt.xlabel('Count')  
+                    plt.ylabel('Number of Sentences')
+                    plt.title('Sentence Count per Observation')
+                    # Adjust spacing between subplots
+                    fig.tight_layout()
+                    st.pyplot(fig)
         
 
     # Building out the predication page
@@ -409,10 +590,6 @@ def main():
                 'Please select a model:',
                 ('Stocastic Gradient Descent', 'Logistic Regression', 'Support Vector', 'Naive Bayes', 'Nearest Neighbours' ))
             bulk_sentiment = st.checkbox('Bulk Sentiment:', value=False, label_visibility="visible")
-            
-            col3, col4, col5 = st.columns([0.1, 0.8, 0.1])
-            with col4:
-                st.image("logos/black-306558_1920.png", width=150)  
 
         with col2:
             if bulk_sentiment == False:
@@ -493,7 +670,7 @@ def main():
         
     # Building out the about us page
     if selection == "About Us":
-        
+        st.markdown(font_css, unsafe_allow_html=True)
         tab1, tab2, tab3 = st.tabs(["WebTec Solutions", "Testimonials", "Contact Us"])
 
         with tab1:
@@ -538,11 +715,12 @@ def main():
         feedback_text = st.text_area("User Feedback:","Type Here")
 
         if st.button("Submit Feedback"):
-            st.markdown("Feedback Submitted...")
-            st.markdown("Thank you for using the App!")
+            st.info("Feedback Submitted...")
+            feedback_text = 'Type Here'
             
     st.image("resources/imgs/trees-6863878_1920.png")  
 
+    
 # Required to let Streamlit instantiate our web app.  
 if __name__ == '__main__':
     main()
