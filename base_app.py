@@ -402,7 +402,7 @@ def main():
     
     # Building out the "Information" page
     if selection == "Analysis":
-        st.markdown("<div style='background-color: rgba(246, 246, 246, 0.4); box-shadow: 2px 2px; padding: 20px; margin: 0px 0px 25px 0px; border-radius: 10px; text-align:justify'><p><h6>Data Analyser:</h6>Welcome to our data analyzer! In the realm of data-driven decision making, understanding and analyzing datasets is paramount. With our data analyzer, we aim to simplify the process of exploring and gaining insights from your data. Simply upload your CSV file contianing tweet messages and sentiments and let the application do the work.</p></div>", unsafe_allow_html=True)
+        st.markdown("<div style='background-color: rgba(246, 246, 246, 0.4); box-shadow: 2px 2px; padding: 20px; margin: 0px 0px 25px 0px; border-radius: 10px; text-align:justify'><p><h6>Data Analyser:</h6>Welcome to our data analyzer! In the realm of data-driven decision making, understanding and analyzing datasets is paramount. With our data analyzer, we aim to simplify the process of exploring and gaining insights from your data. Simply upload your CSV file contianing tweet messages, sentiments, and tweet ID's and let the application do the work.</p></div>", unsafe_allow_html=True)
         
         
         uploaded_sentiment = st.file_uploader('Upload CSV File', type=['csv'], accept_multiple_files=False, label_visibility="visible")
@@ -577,7 +577,7 @@ def main():
 
     # Building out the predication page
     if selection == "Sentiment":
-        st.markdown("<div style='background-color: rgba(246, 246, 246, 0.4); box-shadow: 2px 2px; padding: 20px; margin: 0px 0px 25px 0px; border-radius: 10px; text-align:justify'><p><h6>Sentiment Predictor:</h6>Welcome to our advanced sentiment predictor! This powerful tool is designed to determine the sentiment of any given text string and provide valuable insights into the emotional tone and polarity of the content.</p></div>", unsafe_allow_html=True)
+        st.markdown("<div style='background-color: rgba(246, 246, 246, 0.4); box-shadow: 2px 2px; padding: 20px; margin: 0px 0px 25px 0px; border-radius: 10px; text-align:justify'><p><h6>Sentiment Predictor:</h6>Welcome to our advanced sentiment predictor! This powerful tool is designed to determine the sentiment of any given text string and provide valuable insights into the emotional tone and polarity of the content. Simply upload a CSV file containing tweet messages and tweet ID's, submit and let the application do the rest.</p></div>", unsafe_allow_html=True)
         
         sentiment_message = "Please submit a message before a sentiment can be determined..."
         predictor = None
