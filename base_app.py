@@ -30,6 +30,7 @@ import streamlit.components.v1 as components
 from streamlit_elements import elements, mui, html
 import base64
 from streamlit_option_menu import option_menu
+import pickle
 
 # Data dependencies
 import pandas as pd
@@ -143,8 +144,10 @@ def imbalance_message(num):
     return response
 
 # Vectorizer
+# news_vectorizer = open("resources/vectorizer.pkl","rb")
+# tweet_cv = joblib.load(news_vectorizer) # loading your vectorizer from the pkl file
 news_vectorizer = open("resources/vectorizer.pkl","rb")
-tweet_cv = joblib.load(news_vectorizer) # loading your vectorizer from the pkl file
+tweet_cv = pickle.load(news_vectorizer) # loading your vectorizer from the pkl file
 
 # Load your raw data
 raw = pd.read_csv("resources/train.csv")
