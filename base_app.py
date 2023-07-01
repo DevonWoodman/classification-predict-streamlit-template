@@ -59,9 +59,9 @@ from sklearn.feature_extraction.text import CountVectorizer
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-nltk.download('omw-1.4')
-nltk.download('wordnet')
-nltk.download('stopwords')
+# nltk.download('omw-1.4')
+# nltk.download('wordnet')
+# nltk.download('stopwords')
 stemmer = SnowballStemmer('english')
 lemmatizer = WordNetLemmatizer()
 tokeniser = TreebankWordTokenizer()
