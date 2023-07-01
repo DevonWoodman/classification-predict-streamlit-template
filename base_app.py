@@ -59,6 +59,8 @@ from sklearn.feature_extraction.text import CountVectorizer
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+nltk.download('punkt')
+
 
 #contact us office coordinates
 df_office_loc = pd.DataFrame(
