@@ -59,7 +59,12 @@ from sklearn.feature_extraction.text import CountVectorizer
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-nltk.download('punkt')
+nltk.download('wordnet')
+nltk.download('stopwords')
+stemmer = SnowballStemmer('english')
+lemmatizer = WordNetLemmatizer()
+tokeniser = TreebankWordTokenizer()
+stopwords_list = stopwords.words('english')
 
 
 #contact us office coordinates
