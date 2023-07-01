@@ -59,7 +59,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-nltk.download()
+# nltk.download()
 nltk.download('wordnet')
 nltk.download('stopwords')
 stemmer = SnowballStemmer('english')
