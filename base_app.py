@@ -645,7 +645,7 @@ def main():
                 uploaded_file = st.file_uploader('Upload CSV File', type=['csv'], accept_multiple_files=False, label_visibility="visible")
                 if uploaded_file is not None:
                     tweet_data = pd.read_csv(uploaded_file)
-                    n = 100
+                    n = 50
 
                 if st.button("Classify"):
                     clean_text = tweet_data['message'].apply(text_processing)
